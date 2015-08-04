@@ -1,6 +1,7 @@
 # SpaceCamp
 Space::Camp
 
+```
 /
 `-- home
     `-- sam
@@ -14,3 +15,4 @@ Space::Camp
             |   |-- network.yml
             |-- git-repo/
             |-- README
+```
