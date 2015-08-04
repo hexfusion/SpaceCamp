@@ -7,7 +7,7 @@ Space::Camp
     `-- sam
         `-- camp10
             |-- .aci/
-                 |-- manifesit
+                 |-- manifest
                  |-- rootfs/
             |-- config/
             |   |-- camp10.service
