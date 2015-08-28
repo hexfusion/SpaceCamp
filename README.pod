@@ -4,11 +4,9 @@
  
 =head1 NAME
 
-Space Camp
+=for html <div><img src="https://raw.githubusercontent.com/sbatschelet/SpaceCamp/master/public/img/space-camp.png"></div>
 
 =head1 SYNOPSIS
-
-=for html <div><img src="https://raw.githubusercontent.com/sbatschelet/SpaceCamp/master/public/img/space-camp.png"></div>
 
 Space Camp is a container based portable and cloud capable development platform.
 
