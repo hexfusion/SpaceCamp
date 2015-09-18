@@ -39,7 +39,7 @@ column description => {
 
 =head2 users_id
 
-Foreign key constraint on L<Interchange6::Schema::Result::User/users_id>
+Foreign key constraint on L<SpaceCamp::Schema::Result::User/users_id>
 via L</user> relationship.
 
 =cut
