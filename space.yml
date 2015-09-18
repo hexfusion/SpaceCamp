@@ -1,0 +1,24 @@
+
+# etcd
+etcd:
+    data-dir: /var/lib/etcd2
+    intial-cluster-state: new
+    intial-cluster-token: etcd-cluster-01
+    intial-advertise-peers-urls: 192.168.101.1
+    client-port: 2379
+    server-port: 2380
+
+# define basic cluster
+    initial-cluster-nodes:
+        - name: etcd-01
+          url: 192.168.101.1
+        - name: etcd-02
+          url: 192.168.101.2
+        - name: etcd-03
+          url: 192.168.101.3
+
+# files to be tokenized before rolling aci
+config-files:
+    - root_fs/etc/systemd/system/etcd2.service
+    - root_fs/etc/systemd/system/etcd2.service.d/local.conf
+

@@ -1,0 +1,5 @@
+space:
+    dsn: "dbi:Pg:host=localhost;database=space"
+    user: "postgres"
+    password: "pass"
+    # TraceLevel: 1
