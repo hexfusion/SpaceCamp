@@ -1,0 +1,74 @@
+use utf8;
+
+package SpaceCamp::Schema::Result::UserRole;
+
+=head1 NAME
+
+SpaceCamp::Schema::Result::UserRole
+
+=cut
+
+use SpaceCamp::Schema::Candy;
+
+=head1 ACCESSORS
+
+=head2 users_id
+
+FK on L<SpaceCamp::Schema::Result::User/users_id>.
+
+=cut
+
+column users_id =>
+  { data_type => "integer", is_foreign_key => 1 };
+
+=head2 roles_id
+
+FK on L<SpaceCamp::Schema::Result::Role/roles_id>.
+
+=cut
+
+column roles_id =>
+  { data_type => "integer", is_foreign_key => 1 };
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</users_id>
+
+=item * L</roles_id>
+
+=back
+
+=cut
+
+primary_key "users_id", "roles_id";
+
+=head1 RELATIONS
+
+=head2 role
+
+Type: belongs_to
+
+Related object: L<SpaceCamp::Schema::Result::Role>
+
+=cut
+
+belongs_to
+  role => "SpaceCamp::Schema::Result::Role",
+  "roles_id",
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" };
+
+=head2 user
+
+Type: belongs_to
+
+Related object: L<SpaceCamp::Schema::Result::User>
+
+=cut
+
+belongs_to
+  user => "SpaceCamp::Schema::Result::User",
+  "users_id";
+
+1;
