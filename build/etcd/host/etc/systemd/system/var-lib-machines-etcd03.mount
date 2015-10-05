@@ -1,0 +1,14 @@
+[Unit]
+Description=Etcd instance 03 nspawn container storage
+ConditionPathExists=/var/lib/container/base/jessie_amd64
+ConditionPathExists=/var/lib/container/etcd03/rw
+ConditionPathExists=/var/lib/container/etcd03/work
+
+[Mount]
+What=overlay
+Where=/var/lib/machines/etcd03
+Type=overlay
+Options=lowerdir=/var/lib/container/base/jessie_amd64,upperdir=/var/lib/container/etcd03/rw,workdir=/var/lib/container/etcd03/work
+
+[Install]
+WantedBy = multi-user.target
