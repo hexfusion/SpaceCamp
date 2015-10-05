@@ -1,0 +1,7 @@
+[Match]
+Name=host0
+
+[Network]
+DNS=192.168.3.1
+Address=192.168.3.254/24
+Gateway=192.168.3.1
