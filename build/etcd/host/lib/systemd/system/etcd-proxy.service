@@ -1,0 +1,11 @@
+[Unit]
+Description=etcd proxy
+
+[Service]
+ExecStart=/usr/local/bin/etcd -proxy on
+
+Type=notify
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
