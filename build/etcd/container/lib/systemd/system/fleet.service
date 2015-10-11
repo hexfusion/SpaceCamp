@@ -2,7 +2,6 @@
 Description=fleet daemon
 
 After=etcd.service
-After=etcd2.service
 
 Wants=fleet.socket
 After=fleet.socket
@@ -14,3 +13,4 @@ RestartSec=10s
 
 [Install]
 WantedBy=multi-user.target
+~
