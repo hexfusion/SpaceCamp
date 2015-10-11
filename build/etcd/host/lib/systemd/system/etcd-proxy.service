@@ -2,15 +2,18 @@
 Description=etcd proxy
 
 [Service]
-ExecStart=/usr/local/bin/etcd \
-  -proxy on \
-  -initial-cluster-token etcd-cluster-01 \
-  -advertise-client-urls http://192.168.3.250:2379 \
-  -listen-client-urls  http://192.168.3.117:2379,http://127.0.0.1:2379 \
-  -initial-cluster etcd-01=http://192.168.3.250:2380,etcd-02=http://192.168.3.251:2380,etcd-03=http://192.168.3.252:2380 \
+Environment=ETCD_DATA_DIR=/var/lib/etcd
+Environment=ETCD_INITIAL_CLUSTER=etcd-01=http://etcd01:2380,etcd-02=http://etcd02:2380,etcd-03=http://etcd03:2380
+Environment=ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster-01
+Environment=ETCD_LISTEN_CLIENT_URLS=http://127.0.0.1:2379
+Environment=ETCD_ADVERTISE_CLIENT_URLS=http://etcd01:2379,http://etcd02:2379,http://etcd03:2379
+Environment=ETCD_HEARTBEAT_INTERVAL=100
+Environment=ETCD_ELECTION_TIMEOUT=500
+ExecStart=/usr/local/bin/etcd  --proxy=on
 
 Type=notify
 Restart=always
+RestartSec=10s
 
 [Install]
 WantedBy=multi-user.target
