@@ -6,10 +6,11 @@ USE_COMPACT=
 
 BUILD_COMPACT=$USE_COMPACT
 
-WORKDIR=/var/lib/spacecamp/.work
+WORKDIR=/var/lib/container/
 
 mkdir -p $WORKDIR
 
+# create
 function mount_f {
     what=$1
     where=$2
@@ -17,18 +18,15 @@ function mount_f {
     options=$4
 
     echo "mount -t $type -o$options $what $where"
-    #mount -t $type -o$options $what $where
 
     sdname=$(systemd-escape -p $where || true)
-    sdfile="[Mount]\nWhat=$what\nWhere=$where\nType=$type\nOptions=$options\n"
-    sdauto="[Automount]\nWhere=$where\n\n[Install]\nWantedBy=local-fs.target\n"
+    unitfile="[Mount]\nWhat=$what\nWhere=$where\nType=$type\nOptions=$options\n"
 
-    printf "$sdfile" > /lib/systemd/system/$sdname.mount
-    printf "$sdauto" > /lib/systemd/system/$sdname.automount
+    printf "$unitfile" > /lib/systemd/system/$sdname.mount
+
     systemctl daemon-reload
-    systemctl enable "$sdname.automount"
-    systemctl start "$sdname.automount"
-    systemctl restart "$sdname.mount"
+    systemctl enable "$sdname.mount"
+    systemctl start "$sdname.mount"
 }
 
 function umount_f {
@@ -66,7 +64,7 @@ function __mount {
     echo "ID $id"
     echo "FROM $base"
 
-    _sroot=/var/lib/spacecamp/$id
+    _sroot=/var/lib/container/$id
     _root=/var/lib/machines/$id
 
     mkdir -p $_sroot $_root
@@ -150,13 +148,13 @@ function ID {
 
 function FROM {
     base=$1
-    if [ ! -d /var/lib/spacecamp/$base ]
+    if [ ! -d /var/lib/container/base/$base ]
     then
-        echo "Base not found: $base"
+        echo "Base image not found: $base"
         exit 1
     fi
-    base_overlay=$(cat /var/lib/spacecamp/$base/overlay)
-    base_version=$(cat /var/lib/spacecamp/$base/version)
+    base_overlay=$(cat /var/lib/container/base/$base/overlay)
+    base_version=$(cat /var/lib/container/base/$base/version)
 
     # Enable ID <-> FROM reversal
     if [ -n "$id" ]
@@ -165,9 +163,10 @@ function FROM {
     fi
 }
 
+# mount the local apt cache to save time downloading packages
 function RUN {
-    echo systemd-nspawn --bind /var/cache/pacman/pkg/ -M $id "$@"
-    systemd-nspawn --bind /var/cache/pacman/pkg/ -M $id "$@"
+    echo systemd-nspawn --bind /var/cache/apt/archives/ -M $id "$@"
+    systemd-nspawn --bind /var/cache/apt/archives/ -M $id "$@"
 }
 
 function __sd_unit_name {
