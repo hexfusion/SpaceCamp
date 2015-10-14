@@ -1,0 +1,48 @@
+[Unit]
+Description=Define etcd cluster env
+After=machines.target
+
+[Service]
+ExecStartPre=/bin/bash -c "sleep 25"
+ExecStartPre=/bin/bash -c "/bin/systemctl set-environment ETCD01_IP=$(getent ahostsv4 etcd01 | cut -d' ' -f1 | tail -1)"
+ExecStartPre=/bin/bash -c "/bin/systemctl set-environment ETCD02_IP=$(getent ahostsv4 etcd02 | cut -d' ' -f1 | tail -1)"
+ExecStartPre=/bin/bash -c "/bin/systemctl set-environment ETCD03_IP=$(getent ahostsv4 etcd03 | cut -d' ' -f1 | tail -1)"
+
+ExecStart=/bin/bash -c " \
+rm -f /var/lib/container/etcd01/rw/etc/environment && \
+echo "[Service]" >> /var/lib/container/etcd01/rw/etc/environment && \
+echo "ETCD_DATA_DIR=/var/lib/etcd" >> /var/lib/container/etcd01/rw/etc/environment && \
+echo "ETCD_INITIAL_CLUSTER=etcd-01=http://${ETCD01_IP}:2380,etcd-02=http://${ETCD02_IP}:2380,etcd-03=http://${ETCD03_IP}:2380" >> /var/lib/container/etcd01/rw/etc/environment && \
+echo "ETCD_INITIAL_CLUSTER_STATE=new" >> /var/lib/container/etcd01/rw/etc/environment && \
+echo "ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster-01" >> /var/lib/container/etcd01/rw/etc/environment && \
+echo "ETCD_INITIAL_ADVERTISE_PEER_URLS=http://${ETCD01_IP}:2380" >> /var/lib/container/etcd01/rw/etc/environment && \
+echo "ETCD_LISTEN_PEER_URLS=http://${ETCD01_IP}:2380" >> /var/lib/container/etcd01/rw/etc/environment && \
+echo "ETCD_LISTEN_CLIENT_URLS=http://${ETCD01_IP}:2379,http://127.0.0.1:2379" >> /var/lib/container/etcd01/rw/etc/environment && \
+echo "ETCD_ADVERTISE_CLIENT_URLS=http://${ETCD01_IP}:2379" >> /var/lib/container/etcd01/rw/etc/environment && \
+echo "ETCD_NAME=etcd-01" >> /var/lib/container/etcd01/rw/etc/environment && \
+rm -f /var/lib/container/etcd02/rw/etc/environment && \
+echo "[Service]" >> /var/lib/container/etcd02/rw/etc/environment && \
+echo "ETCD_DATA_DIR=/var/lib/etcd" >> /var/lib/container/etcd02/rw/etc/environment && \
+echo "ETCD_INITIAL_CLUSTER=etcd-01=http://${ETCD01_IP}:2380,etcd-02=http://${ETCD02_IP}:2380,etcd-03=http://${ETCD03_IP}:2380" >> /var/lib/container/etcd02/rw/etc/environment && \
+echo "ETCD_INITIAL_CLUSTER_STATE=new" >> /var/lib/container/etcd02/rw/etc/environment && \
+echo "ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster-01" >> /var/lib/container/etcd02/rw/etc/environment && \
+echo "ETCD_INITIAL_ADVERTISE_PEER_URLS=http://${ETCD02_IP}:2380" >> /var/lib/container/etcd02/rw/etc/environment && \
+echo "ETCD_LISTEN_PEER_URLS=http://${ETCD02_IP}:2380" >> /var/lib/container/etcd02/rw/etc/environment && \
+echo "ETCD_LISTEN_CLIENT_URLS=http://${ETCD02_IP}:2379,http://127.0.0.1:2379" >> /var/lib/container/etcd02/rw/etc/environment && \
+echo "ETCD_ADVERTISE_CLIENT_URLS=http://${ETCD02_IP}:2379" >> /var/lib/container/etcd02/rw/etc/environment && \
+echo "ETCD_NAME=etcd-02" >> /var/lib/container/etcd02/rw/etc/environment && \
+rm -f /var/lib/container/etcd03/rw/etc/environment && \
+echo "[Service]" >> /var/lib/container/etcd03/rw/etc/environment && \
+echo "ETCD_DATA_DIR=/var/lib/etcd" >> /var/lib/container/etcd03/rw/etc/environment && \
+echo "ETCD_INITIAL_CLUSTER=etcd-01=http://${ETCD01_IP}:2380,etcd-02=http://${ETCD02_IP}:2380,etcd-03=http://${ETCD03_IP}:2380" >> /var/lib/container/etcd03/rw/etc/environment && \
+echo "ETCD_INITIAL_CLUSTER_STATE=new" >> /var/lib/container/etcd03/rw/etc/environment && \
+echo "ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster-01" >> /var/lib/container/etcd03/rw/etc/environment && \
+echo "ETCD_INITIAL_ADVERTISE_PEER_URLS=http://${ETCD03_IP}:2380" >> /var/lib/container/etcd03/rw/etc/environment && \
+echo "ETCD_LISTEN_PEER_URLS=http://${ETCD03_IP}:2380" >> /var/lib/container/etcd03/rw/etc/environment && \
+echo "ETCD_LISTEN_CLIENT_URLS=http://${ETCD03_IP}:2379,http://127.0.0.1:2379" >> /var/lib/container/etcd03/rw/etc/environment && \
+echo "ETCD_ADVERTISE_CLIENT_URLS=http://${ETCD03_IP}:2379" >> /var/lib/container/etcd03/rw/etc/environment && \
+echo "ETCD_NAME=etcd-03" >> /var/lib/container/etcd03/rw/etc/environment"
+
+[Install]
+WantedBy=multi-user.target
+Alias=etcd-env.service
