@@ -1,0 +1,15 @@
+[Unit]
+Description=SkyDNS
+After=etcd-proxy.service
+
+[Service]
+TimeoutStartSec=0
+
+ExecStart=/usr/local/bin/skydns \
+-addr=192.168.8.9:53 \
+-nameservers="8.8.8.8:53,8.8.4.4:53" \
+-domain="spacecamp.local" \
+-machines="http://127.0.0.1:2379,http://etcd01.spacecamp.local:2379,http://etcd02.spacecamp.local:2379,http://etcd03.spacecamp.local:2379"
+
+[Install]
+WantedBy=multi-user.target
