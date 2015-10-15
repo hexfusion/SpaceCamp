@@ -29,6 +29,17 @@ function mount_f {
     systemctl start "$sdname.mount"
 }
 
+function __launch {
+    _machine=$1
+
+    systemctl daemon-reload
+    systemctl enable "var-lib-machines-$_machine.mount"
+    systemctl start "var-lib-machines-$_machine.mount"
+
+    systemctl enable "systemd-nspawn@$_machine"
+    systemctl start "systemd-nspawn@$_machine"
+}
+
 function umount_f {
     where=$1
 
@@ -77,17 +88,11 @@ then
                 fi
                 build/$path/build.sh $3
                 exit $? ;;
-            tag)
-                rm -f /var/lib/spacecamp/$3
-                ln -s $2 /var/lib/spacecamp/$3
-                rm -f /var/lib/machines/$3
-                ln -s $2 /var/lib/machines/$3
-                if [ -n "$BUILD_COMPACT" ]
+            launch)
+                if [ -n "$2" ]
                 then
-                    rm -f /var/lib/spacecamp/$3.compact
-                    ln -s $2.compact /var/lib/spacecamp/$3.compact
-                    rm -f /var/lib/machines/$3.compact
-                    ln -s $2.compact /var/lib/machines/$3.compact
+                    machine=$2
+                    __launch $machine
                 fi
                 exit 0 ;;
             new) # New container
