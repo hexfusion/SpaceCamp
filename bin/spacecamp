@@ -6,9 +6,7 @@ USE_COMPACT=
 
 BUILD_COMPACT=$USE_COMPACT
 
-WORKDIR=/var/lib/container/
-
-mkdir -p $WORKDIR
+spacecamp=/home/spacecamp/applications/SpaceCamp
 
 # create
 function mount_f {
@@ -20,9 +18,11 @@ function mount_f {
     echo "mount -t $type -o$options $what $where"
 
     sdname=$(systemd-escape -p $where || true)
-    unitfile="[Mount]\nWhat=$what\nWhere=$where\nType=$type\nOptions=$options\n"
+    unitfile="[Unit]\nDescription=Spacecamp container overlay mount\n\n \
+    [Mount]\nWhat=$what\nWhere=$where\nType=$type\nOptions=$options\n\n \
+    [Install]\nWantedBy = multi-user.target"
 
-    printf "$unitfile" > /lib/systemd/system/$sdname.mount
+    printf "$unitfile" > /etc/systemd/system/$sdname.mount
 
     systemctl daemon-reload
     systemctl enable "$sdname.mount"
@@ -38,57 +38,31 @@ function umount_f {
 }
 
 function mount_overlay {
-    _what_ro=$1
-    _what_rw=$2
+    _what_rw=$1
+    _what_wk=$2
     _where=$3
 
-    if [ -n "$_what_rw" ]
-    then
-        if [ -n "$_what_ro" ]
-        then
-            mount_f overlay $_where overlay lowerdir=$_what_ro,upperdir=$_what_rw,workdir=$WORKDIR
-        else
-            mount_f $_what_rw $_where none bind
-        fi
-    else
-        if [[ $_what_ro == *":"* ]]
-        then
-            mount_f overlay $_where overlay lowerdir=$_what_ro
-        else
-            mount_f $_what_ro $_where none bind,ro # Note: ro probably doesnt' work
-        fi
-    fi
+    mount_f overlay $_where overlay lowerdir=$basedir,upperdir=$_what_rw,workdir=$_what_wk
 }
 
 function __mount {
     echo "ID $id"
     echo "FROM $base"
 
-    _sroot=/var/lib/container/$id
-    _root=/var/lib/machines/$id
+    _rwdir=/var/lib/container/$id/rw
+    _workdir=/var/lib/container/$id/work
+    _machinedir=/var/lib/machines/$id
 
-    mkdir -p $_sroot $_root
+    mkdir -p $_rwdir $_workdir $_machinedir
 
-    if [ -n "$base" ]
-    then
-        if [ -n "$USE_COMPACT" ]
-        then
-            _overlay=/var/lib/spacecamp/$base.compact
-        else
-            _overlay=$(cat /var/lib/spacecamp/$base/overlay)
-            _overlay=/var/lib/spacecamp/${_overlay//:/:\/var\/lib\/spacecamp\/}
-        fi
-    else
-        _overlay=""
-    fi
-
-    mount_overlay "$_overlay" "$_sroot" $_root
+    mount_overlay "$_rwdir" "$_workdir" "$_machinedir"
 }
 
 function __umount {
     umount_f "$root"
 }
 
+echo $(basename "$0")
 if [ $(basename "$0") = "spacecamp" ]
 then
     if [ -n "$1" ]
@@ -101,7 +75,7 @@ then
                 else
                     path="."
                 fi
-                $path/build.sh
+                build/$path/build.sh $3
                 exit $? ;;
             tag)
                 rm -f /var/lib/spacecamp/$3
@@ -137,9 +111,9 @@ function ID {
     name=$1
     version=$2
 
-    id=$name-$version
+    id=$name$version
     root=/var/lib/machines/$id
-    sroot=/var/lib/spacecamp/$id
+    sroot=/var/lib/container/$id
 
     mkdir -m 0755 -p $root
 
@@ -148,13 +122,13 @@ function ID {
 
 function FROM {
     base=$1
-    if [ ! -d /var/lib/container/base/$base ]
+    basedir=/var/lib/container/base/$base
+ 
+    if [ ! -d $basedir ]
     then
         echo "Base image not found: $base"
         exit 1
     fi
-    base_overlay=$(cat /var/lib/container/base/$base/overlay)
-    base_version=$(cat /var/lib/container/base/$base/version)
 
     # Enable ID <-> FROM reversal
     if [ -n "$id" ]
@@ -179,7 +153,7 @@ function __sd_unit_name {
 }
 
 function __sd_add_unit {
-    cp $1 $root/usr/lib/systemd/system/
+    cp $1 $root/lib/systemd/system/
 }
 
 function ADD_UNIT {
@@ -215,7 +189,7 @@ function CMD {
 function __cleanup_systemd {
     if [ "$(ls -A $sroot/etc/systemd/system 2>/dev/null || true)" ]
     then
-        cp -r $sroot/etc/systemd/system/* $sroot/usr/lib/systemd/system/
+        cp -r $sroot/etc/systemd/system/* $sroot/lib/systemd/system/
         rm -rf $sroot/etc/systemd/system
     fi
 }
@@ -226,20 +200,7 @@ function __save_settings {
     then
         echo $id:$base_overlay > $sroot/overlay
     else
-        echo $id > $sroot/overlay
-    fi
-}
-
-function __compact {
-    rm -rf $sroot.compact
-
-    if [ -n "$base" ]
-    then
-        mkdir -p $sroot.compact
-        cp -r --reflink /var/lib/spacecamp/$base.compact/* $sroot.compact
-        cp -r --reflink $sroot/* $sroot.compact
-    else
-        ln -s $id $sroot.compact
+       echo $id > $sroot/overlay
     fi
 }
 
